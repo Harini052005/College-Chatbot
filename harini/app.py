@@ -7,7 +7,7 @@ from bson.objectid import ObjectId
 
 # Initialize Flask app 
 app = Flask(__name__)
-app.secret_key = "4f3b2e9a7c8d6e1f5a0b3d2c9e4f8a7b"
+app.secret_key = "enter_secret_key"
 
 # Initialize Flask-Login
 login_manager = LoginManager()
@@ -15,7 +15,7 @@ login_manager.init_app(app)
 login_manager.login_view = "admin_login"
 
 # Connect to MongoDB
-client = MongoClient("mongodb://localhost:27017/")  # Update with your MongoDB connection string
+client = MongoClient("update_mongodb_connection")  # Update with your MongoDB connection string
 chatbot_db = client["chatbot_db"]  # Database name
 responses_collection = chatbot_db["chatbot_responses"]  # Collection for chatbot responses
 admin_collection = chatbot_db["admin_users"]  # Collection for admin credentials
@@ -143,3 +143,4 @@ def admin_logout():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
