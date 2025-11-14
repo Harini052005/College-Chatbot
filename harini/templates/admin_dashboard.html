@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            text-align: center;
+        }
+        .container {
+            margin: 50px auto;
+            width: 50%;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        button {
+            padding: 10px;
+            margin: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .add {
+            background: #28a745;
+            color: white;
+        }
+        .edit {
+            background: #ffc107;
+        }
+        .delete {
+            background: #dc3545;
+            color: white;
+        }
+        .logout {
+            background: #007bff;
+            color: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Admin Dashboard</h2>
+        <p>Manage Chatbot Responses</p>
+        
+        <!-- Add Response Form -->
+        <form action="/add_response" method="POST">
+            <input type="text" name="pattern" placeholder="Enter question pattern" required>
+            <input type="text" name="response" placeholder="Enter chatbot response" required>
+            <button type="submit" class="add">Add Response</button>
+        </form>
+
+        <table>
+            <tr>
+                <th>Pattern</th>
+                <th>Response</th>
+                <th>Actions</th>
+            </tr>
+            {% for response in responses %}
+            <tr>
+                <td>{{ response.pattern }}</td>
+                <td>{{ response.response[0] }}</td>
+                <td>
+                    <!-- Edit Form -->
+                    <form action="/edit_response/{{ response._id }}" method="POST" style="display:inline;">
+                        <input type="text" name="pattern" value="{{ response.pattern }}" required>
+                        <input type="text" name="response" value="{{ response.response[0] }}" required>
+                        <button type="submit" class="edit">Edit</button>
+                    </form>
+        
+                    <!-- Delete Form -->
+                    <form action="/delete_response/{{ response._id }}" method="POST" style="display:inline;">
+                        <button type="submit" class="delete">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        
+
+        <button class="logout" onclick="location.href='/admin_logout'">Logout</button>
+    </div>
+</body>
+</html>

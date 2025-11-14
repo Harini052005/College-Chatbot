@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/logo.gif">
+    <title> MVM Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:wght@400;500;600;700;800&display=swap');
+
+body {
+    background-image: url("{{url_for('static',filename='clg.jpg')}}"); 
+    font-family: poppins, sans-serif;
+    color: rgb(0, 0, 0);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+    position: relative;
+    background-size: cover;  
+    background-position: center; 
+    background-repeat: no-repeat; 
+    margin: 0;
+    padding: 0;
+}
+.chat-container {
+    width: 600px;
+    background: #ffffff;
+    color: black;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    height: 550px;
+}
+.chatbox {
+    flex: 1;
+    height: 500px;
+    width: auto;
+    overflow-y: auto;
+    border-radius: 10px;
+    padding: 25px;
+    background: #f1f1f1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.message {
+    padding: 10px 15px;
+    border-radius: 12px;
+    max-width: 75%;
+    word-wrap: break-word;
+    animation: fadeIn 0.5s ease-in-out;
+}
+.user-message {
+    align-self: flex-end;
+    background: #4d17a3;
+    color: white;
+}
+.bot-message {
+    align-self: flex-start;
+    background: #e4e6eb;
+    color: black;
+}
+.input-box {
+    display: flex;
+    align-items: center;
+    border-top: 2px solid #ddd;
+    padding-top: 10px;
+    gap: 10px;
+}
+.input-box input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    outline: none;
+}
+.input-box button {
+    padding: 15px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s ease;
+}
+.send-btn {
+    background: #047c0c;
+    color: white;
+}
+.send-btn:hover {
+    background: #1da52f;
+}
+.voice-btn {
+    background: #0022ff;
+    color: white;
+    
+}
+.voice-btn:hover {
+    background: #4459e2;
+}
+.login-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 10px 15px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.login-btn:hover {
+    background: #0056b3;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+<body>
+    
+    <button class="login-btn" onclick="location.href='/admin_login'">Admin Login</button>
+    <h2>Welcome to MVM Chatbot</h2>
+    <div class="chat-container">
+        <div class="chatbox" id="chatbox"></div>
+        <div class="input-box">
+            <input type="text" id="userInput" placeholder="Type a message...">
+            <button class="send-btn" onclick="sendMessage()">Send</button>
+            <button class="voice-btn" onclick="startVoiceRecognition()"><div class="icon"><i class="fa-solid fa-microphone"></i></div></button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const userInput = document.getElementById("userInput").value.trim();
+            const chatbox = document.getElementById("chatbox");
+            if (userInput === "") return;
+
+            let userMessage = document.createElement("div");
+            userMessage.className = "message user-message";
+            userMessage.textContent = userInput;
+            chatbox.appendChild(userMessage);
+
+            document.getElementById("userInput").value = "";
+
+            fetch("/get_response", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `user_input=${userInput}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                let botMessage = document.createElement("div");
+                botMessage.className = "message bot-message";
+                botMessage.textContent = data.response;
+                chatbox.appendChild(botMessage);
+                chatbox.scrollTop = chatbox.scrollHeight;
+                speakResponse(data.response);
+            })
+            .catch(() => {
+                let errorMessage = document.createElement("div");
+                errorMessage.className = "message bot-message";
+                errorMessage.textContent = "Sorry, something went wrong.";
+                chatbox.appendChild(errorMessage);
+            });
+        }
+
+        function startVoiceRecognition() {
+            let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = "en-US";
+
+            recognition.onresult = function (event) {
+                let userSpeech = event.results[0][0].transcript;
+                document.getElementById("userInput").value = userSpeech;
+                sendMessage();
+            };
+
+            recognition.start();
+        }
+
+        function speakResponse(text) {
+            let speech = new SpeechSynthesisUtterance(text);
+            speech.lang = "en-US";
+            window.speechSynthesis.speak(speech);
+        }
+    </script>
+</body>
+</html>
